@@ -4,9 +4,27 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <fstream>
 
 using namespace std;
+
+extern string path;
+extern ofstream flux;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int length_trace(string trace){
+    int i,count=0;
+    string c;
+    for (i=0;i<trace.length();i++){
+        c=trace[i];
+        if (c==" "){
+            count+=1;
+        }
+    }
+    return count+1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 bornes def_bornes(int index, string exp){
     string sub;
@@ -38,6 +56,8 @@ bornes def_bornes(int index, string exp){
     return b;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ancre def_ancre(int index, string exp){
     int j,res;
     ancre anc;
@@ -54,6 +74,8 @@ ancre def_ancre(int index, string exp){
             res=3;
         }else if (c=="%"){
             res=4;
+        }else if (c==" "){
+            res=5;
         }
         else if (c==">"){
             break;
@@ -65,18 +87,27 @@ ancre def_ancre(int index, string exp){
     return anc;
 }
 
-void expression_0(int min, int max){
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void expression_0(int min, int max, string& trace, int length_max){
     int x;
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distr(min,max);
     int r=distr(gen);
     for(x=0;x<r;x++){
-        cout<<" "<<"*"<<" ";
+        if (length_trace(trace)<length_max){
+            flux<<"*"<<" ";
+            trace+="* ";
+        }
     }
 }
 
-void expression_1(int min, int max){
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void expression_1(int min, int max, string& trace, int length_max){
     int x;
     vector<int> evenement;
     random_device rd;
@@ -95,20 +126,27 @@ void expression_1(int min, int max){
     
     for(x=0;x<r;x++){
         if (find(evenement.begin(), evenement.end(), x) == evenement.end()){
-            cout<<" "<<"*"<<" ";
+            if (length_trace(trace)<length_max){
+                flux<<"*"<<" ";
+                trace+="* ";
+            }
         }else{
-            uniform_int_distribution<> distr2(0,50);
-            int n2= distr2(gen);
-            cout<<" "<<"Ea"<<n2<<" ";
-
+            if (length_trace(trace)<length_max){
+                uniform_int_distribution<> distr2(0,50);
+                int n2= distr2(gen);
+                flux<<"Ea"<<n2<<" ";
+                trace=trace + "Ea "+ to_string(n2) + " ";
+            }
         }   
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void expression_2(int min, int max){
+void expression_2(int min, int max, string& trace,int length_max){
     int x;
     vector<int> evenement;
+    
     random_device rd;
     mt19937 gen(rd());
 
@@ -124,18 +162,25 @@ void expression_2(int min, int max){
     }
     
     for(x=0;x<r;x++){
+        if (length_trace(trace)<length_max){
         if (find(evenement.begin(), evenement.end(), x) == evenement.end()){
-            cout<<" "<<"*"<<" ";
+            flux<<"*"<<" ";
+            trace+="* ";
         }else{
             uniform_int_distribution<> distr2(0,50);
             int n2= distr2(gen);
-            cout<<" "<<"Ea"<<n2<<" ";
+            flux<<"E"<<n2<<" ";
+            trace=trace + "E"+ to_string(n2) + " ";
 
         }   
+        }
     }
 }
 
-void expression_3(int min,int max,ancre anc, string exp){
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void expression_3(int min,int max,ancre anc, string exp, string& trace, int length_max){
     string sub= exp.substr(anc.start,anc.end+1);
     string c,num;
     vector<string> vec_exp;
@@ -167,11 +212,149 @@ void expression_3(int min,int max,ancre anc, string exp){
 
     for(x=0;x<r;x++){
         if (x!=indice){
-            cout<<" "<<"*"<<" ";
+            flux<<" "<<"*"<<" ";
         }else{
             uniform_int_distribution<> distr2(0,vec_exp.size()-1);
             int n2= distr2(gen);
-            cout<<" "<<vec_exp[n2]<<" ";
+            flux<<" "<<vec_exp[n2]<<" ";
+        }
+    }
+
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void expression_4(int min,int max,ancre anc, string exp, string& trace, int length_max){
+    string sub= exp.substr(anc.start,anc.end+1);
+    string c,num,prop;
+    vector<string> vec_exp,vec_prop;
+    int i,j,proba,p,somme=0;
+    for (i=0;i<sub.length();i++){
+        c=sub[i];
+        if (c==")"){
+            break;
+        }
+    }
+    for (j=0;j<sub.length();j++){
+        c=sub[j];
+        if (c=="%"){
+            num=sub.substr(i+1,j-(i+1));
+            vec_exp.push_back(num);
+            i=j;
+        }else if ((c=="|")||(c==">")){
+            prop=sub.substr(i+1,j-(i+1));
+            vec_prop.push_back(prop);
+            i=j;
+        }
+    }
+    int x;
+    random_device rd;
+    mt19937 gen(rd());
+
+    uniform_int_distribution<> distr(min,max);
+    int r=distr(gen);
+
+    uniform_int_distribution<> distr1(0,r-1);
+    int indice= distr1(gen);
+
+    uniform_int_distribution<> distr3(0,100);
+    int d= distr3(gen);
+
+    for(x=0;x<r;x++){
+        if (length_trace(trace)<length_max){
+        if (x!=indice){
+            flux<<"*"<<" ";
+            trace+="* ";
+        }else{
+            for (p=0;p<vec_prop.size();p++){
+                proba=stoi(vec_prop[p]);
+                somme=somme+proba;
+                if (d<=somme){
+                    flux<<" "<<vec_exp[p]<<" ";
+                    trace=trace + " "+ vec_exp[p] + " ";
+
+                    break;
+                }
+            }
+        }
+        }
+    }
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void expression_5(int min,int max,ancre anc, string exp, string& trace, int length_max){
+    string sub= exp.substr(anc.start,anc.end+1);
+    string c,num,ex,ch;
+    bool x_times;
+    vector<string> vec_exp;
+    int i,j,x,nb,nb_times;
+    // find ) where begin the expression
+    for (i=0;i<sub.length();i++){
+        c=sub[i];
+        if (c==")"){
+            break;
+        }
+    }
+    i++;
+    for (j=0;j<sub.length();j++){
+        c=sub[j];
+        if (c==" "){
+            num=sub.substr(i,j-(i));
+            x_times=false;
+            for (x=0;x<num.length();x++){
+                ch=num[x];
+                if (ch=="X"){
+                    x_times=true;
+                    ex=num.substr(0,x);
+                    nb_times= stoi(num.substr(x+1,num.length()-(x+1)));
+                    for (int nb=0;nb<nb_times;nb++){
+                        vec_exp.push_back(ex);
+                    }        
+                    i=j+1;
+                    break;
+                    continue;
+                }
+            }
+            if (x_times==false){
+            vec_exp.push_back(num);
+            i=j+1;
+            }
+        }
+    }
+
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distr(min,max);
+    int r=distr(gen);
+
+
+    int dist=r;
+    uniform_int_distribution<> distr2(0,1);
+
+
+    for(x=0;x<r;x++){
+        int choice=distr2(gen);
+        if (length_trace(trace)<length_max){
+        if ((choice==0)&&(dist>=vec_exp.size())){
+            flux<<"*"<<" ";
+            trace+="* ";
+            dist-=1;
+        }else{
+            uniform_int_distribution<> distr1(0,vec_exp.size()-1);
+            int index= distr1(gen);
+            flux<<vec_exp[index]<<" ";
+            trace=trace + vec_exp[index] + " ";
+            dist-=1;
+            if (vec_exp.size()>1){
+                vec_exp.erase(vec_exp.begin()+index);
+            }
+        }
         }
     }
 
