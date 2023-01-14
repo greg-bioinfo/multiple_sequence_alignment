@@ -5,17 +5,20 @@
 #include <fstream>
 using namespace std;
 
-std::ofstream flux{"trace.txt"};
 
-int main(int argc, char** argv){
-
-
-    string exp=argv[1];//E1<(6-8)E2%45|E1%55>E8";
+int main(int argc, char *argv[]){
+    string path_param=argv[1];
+    string path_trace=argv[2];
+    parameters res; 
+    ofstream flux{path_trace};
+    search_parameters(res,path_param);
+    string exp=res.expression;
+    int length_max=res.length_max;
+    int nb_trace=res.nb_trace;
     int i,l,j,x,count,leng;
-    int length_max=25;
     string c;
     l=exp.length();
-    for(count=0;count<50;count++){
+    for(count=0;count<nb_trace;count++){
         string trace="";
         leng=length_trace(trace);
         for(i=0;i<exp.length();i++){
@@ -28,7 +31,7 @@ int main(int argc, char** argv){
                 trace+=" ";
                 bornes b;
                 b=def_bornes(i,exp);
-                expression_0(b.min,b.max,trace,length_max);
+                expression_0(b.min,b.max,trace,length_max,flux);
                 i=b.end;
             } else if ((c=="<")&(leng<length_max)){
                 flux<<" ";
@@ -38,15 +41,15 @@ int main(int argc, char** argv){
                 b=def_bornes(i+1,exp);
                 anc=def_ancre(i,exp);
                 if (anc.type==1){
-                    expression_1(b.min,b.max,trace, length_max);
+                    expression_1(b.min,b.max,trace, length_max,flux);
                 }else if (anc.type==2){
-                    expression_2(b.min,b.max,trace, length_max);
+                    expression_2(b.min,b.max,trace, length_max,flux);
                 }else if(anc.type==3){
-                    expression_3(b.min,b.max,anc,exp,trace, length_max);
+                    expression_3(b.min,b.max,anc,exp,trace, length_max,flux);
                 }else if(anc.type==4){
-                    expression_4(b.min,b.max,anc,exp,trace, length_max);
+                    expression_4(b.min,b.max,anc,exp,trace, length_max,flux);
                 }else if(anc.type==5){
-                    expression_5(b.min,b.max,anc,exp,trace, length_max);
+                    expression_5(b.min,b.max,anc,exp,trace, length_max,flux);
                 }
                 i+=anc.end;
             }
