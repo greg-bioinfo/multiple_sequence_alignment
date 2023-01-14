@@ -5,13 +5,43 @@
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <iterator>
 
 using namespace std;
 
-extern string path;
-extern ofstream flux;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This function search the parameters in a file and save them in a structure called parameters
+void search_parameters(parameters& res,string path){
+   
+	ifstream file;
+	char line[256];
+	string exp,ex,l,nb;
+	file.open(path,ios::in);
+
+	while(file.getline(line,sizeof line)){
+    	exp=line;
+    	ex=exp.substr(0,12);
+    	if(ex=="<expression>"){
+        res.expression=exp.substr(12,exp.length()-11);
+        continue;
+    	};
+     	nb=exp.substr(0,17);
+    	if(nb=="<nombre_de_trace>"){
+        res.nb_trace=stoi(exp.substr(17,exp.length()-17));
+        continue;
+    	};
+      l=exp.substr(0,29);
+    	if(l=="<longueur_maximum_des_traces>"){
+        res.length_max=stoi(exp.substr(29,exp.length()-29));
+        continue;
+    	};
+	}
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// this function calcul the nummber of evenment or point in a trace (separate by a white space)
 int length_trace(string trace){
     int i,count=0;
     string c;
@@ -25,6 +55,7 @@ int length_trace(string trace){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//This function extracts the minimum and maximum time between parentheses
 
 bornes def_bornes(int index, string exp){
     string sub;
@@ -57,7 +88,7 @@ bornes def_bornes(int index, string exp){
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+//This function is used to determine the type of expression
 ancre def_ancre(int index, string exp){
     int j,res;
     ancre anc;
@@ -90,7 +121,7 @@ ancre def_ancre(int index, string exp){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void expression_0(int min, int max, string& trace, int length_max){
+void expression_0(int min, int max, string& trace, int length_max,ofstream& flux){
     int x;
     random_device rd;
     mt19937 gen(rd());
@@ -107,7 +138,7 @@ void expression_0(int min, int max, string& trace, int length_max){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void expression_1(int min, int max, string& trace, int length_max){
+void expression_1(int min, int max, string& trace, int length_max,ofstream& flux){
     int x;
     vector<int> evenement;
     random_device rd;
@@ -132,10 +163,10 @@ void expression_1(int min, int max, string& trace, int length_max){
             }
         }else{
             if (length_trace(trace)<length_max){
-                uniform_int_distribution<> distr2(0,50);
+                uniform_int_distribution<> distr2(0,9);
                 int n2= distr2(gen);
-                flux<<"Ea"<<n2<<" ";
-                trace=trace + "Ea "+ to_string(n2) + " ";
+                flux<<"E"<<n2<<" ";
+                trace=trace + "E "+ to_string(n2) + " ";
             }
         }   
     }
@@ -143,10 +174,9 @@ void expression_1(int min, int max, string& trace, int length_max){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void expression_2(int min, int max, string& trace,int length_max){
+void expression_2(int min, int max, string& trace,int length_max,ofstream& flux){
     int x;
     vector<int> evenement;
-    
     random_device rd;
     mt19937 gen(rd());
 
@@ -167,7 +197,7 @@ void expression_2(int min, int max, string& trace,int length_max){
             flux<<"*"<<" ";
             trace+="* ";
         }else{
-            uniform_int_distribution<> distr2(0,50);
+            uniform_int_distribution<> distr2(0,9);
             int n2= distr2(gen);
             flux<<"E"<<n2<<" ";
             trace=trace + "E"+ to_string(n2) + " ";
@@ -180,7 +210,7 @@ void expression_2(int min, int max, string& trace,int length_max){
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void expression_3(int min,int max,ancre anc, string exp, string& trace, int length_max){
+void expression_3(int min,int max,ancre anc, string exp, string& trace, int length_max,ofstream& flux){
     string sub= exp.substr(anc.start,anc.end+1);
     string c,num;
     vector<string> vec_exp;
@@ -226,7 +256,7 @@ void expression_3(int min,int max,ancre anc, string exp, string& trace, int leng
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void expression_4(int min,int max,ancre anc, string exp, string& trace, int length_max){
+void expression_4(int min,int max,ancre anc, string exp, string& trace, int length_max,ofstream& flux){
     string sub= exp.substr(anc.start,anc.end+1);
     string c,num,prop;
     vector<string> vec_exp,vec_prop;
@@ -288,7 +318,7 @@ void expression_4(int min,int max,ancre anc, string exp, string& trace, int leng
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void expression_5(int min,int max,ancre anc, string exp, string& trace, int length_max){
+void expression_5(int min,int max,ancre anc, string exp, string& trace, int length_max,ofstream& flux){
     string sub= exp.substr(anc.start,anc.end+1);
     string c,num,ex,ch;
     bool x_times;
@@ -337,15 +367,18 @@ void expression_5(int min,int max,ancre anc, string exp, string& trace, int leng
     int dist=r;
     uniform_int_distribution<> distr2(0,1);
 
-
+    bool evenment=true;
     for(x=0;x<r;x++){
         int choice=distr2(gen);
         if (length_trace(trace)<length_max){
-        if ((choice==0)&&(dist>=vec_exp.size())){
+        if (((choice==0)&&(dist>=vec_exp.size()))|| (evenment==false)){
             flux<<"*"<<" ";
             trace+="* ";
             dist-=1;
         }else{
+            if (vec_exp.size()==1){
+                evenment=false;
+            }
             uniform_int_distribution<> distr1(0,vec_exp.size()-1);
             int index= distr1(gen);
             flux<<vec_exp[index]<<" ";
