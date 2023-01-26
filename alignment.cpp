@@ -10,32 +10,24 @@ using namespace std;
 
 
 int main(int argc, char *argv[]){
-    int i,j,del_penal,ins_penal;
-    string path=argv[1];
-    float seuil=10;
-    ofstream outFile (argv[2]);
+    int i,j,del_penal,ins_penal,match_score,mismatch_score;
 
-
+    //initialize each parameters
+    string path=argv[1],path_align=argv[2];
+    float seuil=atoi(argv[6]);
     del_penal=atoi(argv[4]);
     ins_penal=atoi(argv[5]);
+    match_score=atoi(argv[7]);
+    mismatch_score=atoi(argv[8]);
 
     vector<vector<string>> v;
+    //Calcul the time of  execution
     auto start = chrono::high_resolution_clock::now();
-    double time=Alignement_multiple(v,seuil,path,-4,-4);
+    Alignment_multiple(v,seuil,path,del_penal,ins_penal,match_score,mismatch_score);
     auto stop = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
-    float time_ex=duration.count();
-    cout<<duration.count()<<endl;
-    for(int i=0;i<v.size();i++){
-        for(int j=0;j<v[i].size();j++){
-            for(int y=0;y<v[i][j].size();y++){
-                outFile<<v[i][j][y];
-            }
-            outFile<<string(5-v[i][j].size(),' ');
-        }
-        outFile<<"\n";
-    }
-carac_csv (argv[3],v,del_penal,ins_penal,time_ex);
-
+    float time_ex=duration.count()/1000;
+    write_alignment(v,path_align);
+    carac_csv (argv[3],v,del_penal,ins_penal,match_score,mismatch_score, time_ex,path_align);
 }
 
