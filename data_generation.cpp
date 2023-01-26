@@ -9,6 +9,8 @@ using namespace std;
 int main(int argc, char *argv[]){
     string path_param=argv[1];
     string path_trace=argv[2];
+
+    //structure for parameters
     parameters res; 
     ofstream flux{path_trace};
     search_parameters(res,path_param);
@@ -18,11 +20,13 @@ int main(int argc, char *argv[]){
     int i,l,j,x,count,leng;
     string c;
     l=exp.length();
+    //As long as the trace length does not exceed the maximum
     for(count=0;count<nb_trace;count++){
         string trace="";
         leng=length_trace(trace);
         for(i=0;i<exp.length();i++){
             c=exp[i];
+            //no expression
             if ((c!="(")&(c!="<")&(leng<length_max)){
                 flux<<c;
                 trace+=c;
@@ -30,7 +34,7 @@ int main(int argc, char *argv[]){
                 flux<<" ";
                 trace+=" ";
                 bornes b;
-                b=def_bornes(i,exp);
+                b=def_bounds(i,exp);
                 expression_0(b.min,b.max,trace,length_max,flux);
                 i=b.end;
             } else if ((c=="<")&(leng<length_max)){
@@ -38,8 +42,8 @@ int main(int argc, char *argv[]){
                 trace+=" ";
                 bornes b;
                 ancre anc;
-                b=def_bornes(i+1,exp);
-                anc=def_ancre(i,exp);
+                b=def_bounds(i+1,exp);
+                anc=def_anchor(i,exp);
                 if (anc.type==1){
                     expression_1(b.min,b.max,trace, length_max,flux);
                 }else if (anc.type==2){
