@@ -1,0 +1,26 @@
+<choose the number of mse>
+<number_alignment>10
+
+<Choose the complexity of the trace>
+<expression>E1<(5-8)+>E9<(5-9)E6X3 E7X2 E4X1 >E8<(4-7)E2%25|E5%70>E2
+
+<Number of trace in one alignment>
+<nombre_de_trace>20
+
+<Maximum trace length>
+<longueur_maximum_des_traces>25
+
+<cost of one insertion in an alignment>
+<penality_insertion>0
+
+<cost of one deletion in an alignment>
+<penality_deletion>0
+
+<threshold that define the program to converge or not>
+<threshold_ACH>10
+
+<cost of match between two events>
+<match_score>10
+
+<cost of mismatch between two events>
+<mismatch_score>3
